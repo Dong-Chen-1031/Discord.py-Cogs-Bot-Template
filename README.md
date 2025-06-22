@@ -114,7 +114,7 @@ python bot.py
 ### 🎯 互動式模組管理
 當使用 `.dev reload` 不帶參數時，機器人會顯示互動式按鈕界面：
 
-![互動式模組管理界面](screenshots\reload.png)
+![互動式模組管理界面](https://github.com/Dong-Chen-1031/Discord.py-Cogs-Bot-Template/blob/main/screenshots/reload.png?raw=true)
 
 - **All 按鈕** - 重載所有模組
 - **個別模組按鈕** - 重載特定模組
