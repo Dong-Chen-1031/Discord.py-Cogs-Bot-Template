@@ -10,11 +10,11 @@ load_dotenv()
 # Discord 機器人 Token
 DISCORD_BOT_TOKEN = str(os.getenv("DISCORD_BOT_TOKEN"))
 
-AUTO_RELOAD = False # 是否自動重新載入指令
+AUTO_RELOAD = False # 是否自動重新載入 Cogs
 
 # 開發者指令的開發者ID
 DEV_ID = [
-    123456789012345678,  # 替換為你的 Discord 開發者 ID
+    123456789012345678,  # 替換為你的 Discord 用戶 ID
     987654321098765432   # 可以添加多個開發者 ID
 ]
 
