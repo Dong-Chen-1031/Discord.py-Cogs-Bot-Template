@@ -1,1 +1,4 @@
 discord.py
+rich
+dotenv
+watchdog
