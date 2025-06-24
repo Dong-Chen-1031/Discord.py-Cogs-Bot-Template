@@ -4,11 +4,12 @@ import sys
 import time
 import discord
 from discord.ext import commands
-from utils import ui
-from utils.log import log
+from discord import app_commands, Interaction
 import asyncio
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
+from utils import ui
+from utils.log import log
 
 import settings
 
@@ -18,9 +19,9 @@ async def reload_cogs(cogs: list|str, bot:commands.Bot):
         cogs = [cogs]
     for cog in cogs:
         try:
-            logging.info(f"正在重新載入 {cog}...")
+            # logging.info(f"正在重新載入 {cog}...")
             await bot.reload_extension(f"cogs.{cog}")
-            logging.info(f"已成功重新載入 {cog}。")
+            # logging.info(f"已成功重新載入 {cog}。")
         
         except Exception as e:
             logging.warning(f"Cogs 重新載入失敗: {e}")
@@ -88,6 +89,22 @@ class ReloadView(discord.ui.View):
 class DevCog(commands.Cog):
     def __init__(self, bot):
         self.bot:commands.Bot = bot
+        self.file_watcher_task = None
+        self.observer = None
+
+    async def cog_unload(self):
+        """當 Cog 被卸載時清理文件監控器"""
+        if self.file_watcher_task:
+            self.file_watcher_task.cancel()
+            try:
+                await self.file_watcher_task
+            except asyncio.CancelledError:
+                pass
+        
+        if self.observer:
+            self.observer.stop()
+            self.observer.join()
+            # logging.info("文件監控器已停止")
 
     def _get_all_cogs(self):
         return get_all_cogs()
@@ -98,7 +115,7 @@ class DevCog(commands.Cog):
         for cog in cogs:
             try:
                 await self.bot.load_extension(f"cogs.{cog}")
-                logging.info(f"已成功載入 {cog}。")
+                # logging.info(f"已成功載入 {cog}。")
             
             except Exception as e:
                 logging.warning(f"Cogs 載入失敗: {e}")
@@ -217,26 +234,41 @@ class CogFileChangeHandler(FileSystemEventHandler):
         if (not event.is_directory) and str(event.src_path).endswith(".py") and (self.last_modified != event.src_path or current_time - self.last_modified_time > 2):
             self.last_modified = event.src_path
             self.last_modified_time = current_time
-            logging.info(f"發現檔案更動: {event.src_path}")
-            self.bot.loop.create_task(reload_cogs(str(os.path.basename(event.src_path)[:-3]), self.bot))
+            file_path = str(event.src_path).replace('/', '\\')
+            logging.info(f"發現檔案更動: {file_path}")
+            
+            # 檢查是否為 cogs 目錄下的 Python 檔案
+            if "\\cogs\\" in file_path and file_path.endswith(".py"):
+                cog_name = str(os.path.basename(event.src_path)[:-3])
+                self.bot.loop.create_task(reload_cogs(cog_name, self.bot))
 
-async def start_file_watcher(bot):
+async def start_file_watcher(bot, dev_cog:DevCog):
+    # logging.info("啟動檔案監控器...")
     event_handler = CogFileChangeHandler(bot)
     observer = Observer()
+    
+    # 監控 cogs 目錄
     observer.schedule(event_handler, path='./cogs', recursive=False)
+    
     observer.start()
+    
+    # 將 observer 儲存到 dev_cog 實例中
+    dev_cog.observer = observer
 
     try:
         while True:
             await asyncio.sleep(1)
     except asyncio.CancelledError:
         observer.stop()
-    observer.join()
+        # logging.info("文件監控器任務已取消")
+    finally:
+        observer.join()
 
 # 在 setup 函數中啟動檔案監控
 async def setup(bot: commands.Bot):
-    await bot.add_cog(DevCog(bot))
+    dev_cog = DevCog(bot)
+    await bot.add_cog(dev_cog)
     bot.add_view(get_reload_all_view())
     if settings.AUTO_RELOAD:
-        bot.loop.create_task(start_file_watcher(bot))
+        dev_cog.file_watcher_task = bot.loop.create_task(start_file_watcher(bot, dev_cog))
     logging.info(f'{__name__} 已載入')
