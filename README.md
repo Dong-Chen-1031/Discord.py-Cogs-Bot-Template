@@ -1,6 +1,6 @@
 # Discord.py Cogs Bot Template
 
-> 一個基於 discord.py 的模組化 Discord 機器人模板，採用 Cogs 架構設計，支援熱重載和開發者工具。
+> 一個基於 discord.py 的模組化 Discord 機器人模板，採用 Cogs 架構設計，支援自動熱重載和開發者工具。
 
 [![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://python.org)
 [![Discord.py](https://img.shields.io/badge/discord.py-2.0+-brightgreen.svg)](https://discordpy.readthedocs.io/)
@@ -10,7 +10,7 @@
 ## ✨ 特色功能
 
 - 🔧 **模組化設計** - 使用 Cogs 系統，功能模組獨立且易於維護
-- 🔄 **熱重載** - 開發時無需重啟機器人即可重載模組
+- 🔄 **自動熱重載** - 開發時無需重啟機器人即可重載模組，且可開啟自動熱重載在檔案編輯時自動重新載入該 cog
 - 🛡️ **權限控制** - 開發者指令具有權限保護機制
 - 📝 **完整日誌** - 使用 Rich 庫美化輸出，支援檔案和控制台雙重記錄
 - ⚡ **斜線指令** - 支援現代化的 Discord 斜線指令
